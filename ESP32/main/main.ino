@@ -34,7 +34,6 @@ void init_tft();
 // UNIQUE DEVICE ID
 Preferences preferences;
 char unitId[ID_BUFFER_SIZE];
-int id_checksum = 0;
 
 // ESP BUTTONS
 Button2 left_button(LEFT_BUTTON_PIN);

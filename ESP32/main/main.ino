@@ -11,16 +11,17 @@
 #define MOTOR_IN3 13
 #define MOTOR_IN4 12
 
-/*#define TASTENFELD_PIN 3
-#define RFID_PIN 4*/
+// SONSOR PINS
 #define ULTRASONIC_TRIGGER_PIN 38
 #define ULTRASONIC_ECHO_PIN 33
 #define ISTGESCHLOSSEN_PIN 39
 
+// ESP32 INTERFACE PINS
 #define LEFT_BUTTON_PIN 0
 #define RIGHT_BUTTON_PIN 35
 #define TFT_BACKLIGHT_PIN 4
 
+// PUFFERS
 #define MSG_BUFFER_SIZE (50)
 #define TOPIC_BUFFER_SIZE (256)
 #define ID_BUFFER_SIZE (32)
@@ -41,15 +42,15 @@ Button2 right_button(RIGHT_BUTTON_PIN);
 void on_left_button_tap(Button2& btn);
 void on_right_button_tap(Button2& btn);
 
-// WIFI ACCESS-DATA
-const char* ssid = "FRITZ!Box 6490 Cable"; 
-const char* password = "65668467166403417168";
+// WIFI CREDENTIALS (must be set)
+const char* ssid = ""; 
+const char* password = "";
 
-// MQTT ACCESS-DATA
+// MQTT CREDENTIALS (must be set)
 const char* mqtt_server = "hrw-fablab.de";
 const int mqtt_server_port = 1883; // 9001 does not reply
-const char* mqtt_server_usern = "gruppe8";
-const char* mqtt_server_password = "q3M@qGRXzEskj5UK";
+const char* mqtt_server_usern = "";
+const char* mqtt_server_password = "";
 
 // WIFI
 WiFiClient espClient;
@@ -62,11 +63,11 @@ char updateMsg[MSG_BUFFER_SIZE];
 int value = 0;
 
 // MOTOR
-int SPU = 2048; // Stufen pro Umdrehung
+int SPU = 2048; // STEPS PER UNIT
 Stepper Motor(SPU, MOTOR_IN4, MOTOR_IN2, MOTOR_IN3, MOTOR_IN1);
 
 // TOPICS
-char* topic_root = "ES/WS20/gruppe8/";
+char* topic_root = "ES/WS20/gruppe8/"; // OUR MQTT PATH ROOT
 char topic_doorSensors[TOPIC_BUFFER_SIZE];
 char topic_doorSensors_isClosed[TOPIC_BUFFER_SIZE];
 char topic_doorSensors_areActionsNearHandle[TOPIC_BUFFER_SIZE];
@@ -96,9 +97,6 @@ void setup() {
 
   Motor.setSpeed(10);
 
-  /*  
-  pinMode(TASTENFELD_PIN, INPUT);
-  pinMode(RFID_PIN, INPUT);*/
   pinMode(ULTRASONIC_ECHO_PIN, INPUT);
   pinMode(ULTRASONIC_TRIGGER_PIN, OUTPUT);
   pinMode(ISTGESCHLOSSEN_PIN, INPUT);
@@ -117,14 +115,13 @@ void setup() {
   snprintf(topic_doorSensors_areActionsNearHandle, TOPIC_BUFFER_SIZE, "%s%s%s", topic_root, unitId, "/DoorSensors/actionsNearDoorHandle");
   snprintf(topic_motor, TOPIC_BUFFER_SIZE, "%s%s%s", topic_root, unitId, "/Motor/#");
   snprintf(topic_motor_direction, TOPIC_BUFFER_SIZE, "%s%s%s", topic_root, unitId, "/Motor/direction");
-  
   snprintf(topic_customText, TOPIC_BUFFER_SIZE, "%s%s%s", topic_root, unitId, "/CustomUserText");
   snprintf(topic_newId, ID_BUFFER_SIZE, "%s%s%s", topic_root, unitId, "/newId");
   
   Serial.begin(115200);
 
   Serial.print("ID of device: "); Serial.println(unitId);
-  Serial.print("TimeToDoorHandle: "); Serial.println(timeToDoorHandle);
+  Serial.print("StandardTimeToDoorHandle: "); Serial.println(timeToDoorHandle);
 
   init_wifi();
   client.setServer(mqtt_server, mqtt_server_port);
@@ -178,7 +175,7 @@ void loop() {
   isClosedLoop();
   areActionsNearHandleLoop();
   
-  // updates status every 10 seconds 
+  // updates status every 10 seconds (DEBUG)
   unsigned long now = millis();
   if(now - lastUpdate >= 10000) { // update interval
     lastUpdate = now;
@@ -190,6 +187,7 @@ void loop() {
        Serial.print("Message published [areActionsNearHandle]: "); Serial.println(v_areActionsNearHandle);
      } */
   }
+  
   if(now - sinceDisplay >= 30000 && sinceDisplay != 0) { // blends out display text after 30 seconds if one is set
     sinceDisplay = 0;
     digitalWrite(TFT_BACKLIGHT_PIN, LOW);
